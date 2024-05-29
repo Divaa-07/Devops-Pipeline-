@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout code from repository
-                git https://github.com/Divaa-07/Devops-Pipeline-.git
+                git branch: 'main', url: 'https://github.com/Divaa-07/Devops-Pipeline-.git'
             }
         }
 
