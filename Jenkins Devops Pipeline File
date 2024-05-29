@@ -1,0 +1,111 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'myapp:latest'
+        SONARQUBE_SERVER = 'SonarQube'
+        REGISTRY_CREDENTIALS = 'dockerhub-credentials'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout code from repository
+                git 'https://github.com/your-repo/your-project.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    // Clean and build the project
+                    sh 'mvn clean package'
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    // Run tests
+                    sh 'mvn test'
+                }
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('Code Quality Analysis') {
+            steps {
+                script {
+                    // Run SonarQube analysis
+                    withSonarQubeEnv('SonarQube') {
+                        sh 'mvn sonar:sonar'
+                    }
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build Docker image
+                    sh "docker build -t ${DOCKER_IMAGE} ."
+                }
+            }
+        }
+
+        stage('Deploy to Test Environment') {
+            steps {
+                script {
+                    // Deploy to test environment
+                    sh 'docker-compose -f docker-compose-test.yml up -d'
+                }
+            }
+        }
+
+        stage('Release to Production') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    // Deploy to production environment
+                    sh 'docker-compose -f docker-compose-prod.yml up -d'
+                }
+            }
+        }
+
+        stage('Monitoring and Alerting') {
+            steps {
+                script {
+                    // Setup monitoring
+                    sh 'datadog-agent integration install -t com.datadoghq.agent/docker'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Cleanup
+            cleanWs()
+        }
+        success {
+            // Notify success
+            mail to: 'team@example.com', subject: "Build Success: ${env.JOB_NAME} ${env.BUILD_NUMBER}", body: "The build was successful."
+        }
+        failure {
+            // Notify failure
+            mail to: 'team@example.com', subject: "Build Failure: ${env.JOB_NAME} ${env.BUILD_NUMBER}", body: "The build failed. Please check the Jenkins logs for more details."
+        }
+    }
+}
