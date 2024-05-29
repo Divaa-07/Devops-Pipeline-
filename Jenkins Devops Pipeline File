@@ -101,11 +101,11 @@ pipeline {
         }
         success {
             // Notify success
-            mail to: 'team@example.com', subject: "Build Success: ${env.JOB_NAME} ${env.BUILD_NUMBER}", body: "The build was successful."
+            mail to: 'divyangalokuhetti04@gmail.com', subject: "Build Success: ${env.JOB_NAME} ${env.BUILD_NUMBER}", body: "The build was successful."
         }
         failure {
             // Notify failure
-            mail to: 'team@example.com', subject: "Build Failure: ${env.JOB_NAME} ${env.BUILD_NUMBER}", body: "The build failed. Please check the Jenkins logs for more details."
+            mail to: 'divyangalokuhetti04@gmail.com', subject: "Build Failure: ${env.JOB_NAME} ${env.BUILD_NUMBER}", body: "The build failed. Please check the Jenkins logs for more details."
         }
     }
 }
